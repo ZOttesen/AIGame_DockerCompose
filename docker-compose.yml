@@ -1,0 +1,135 @@
+version: '3'
+services:
+
+  user-db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: user-db
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: ${DB_PASSWORD}
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: rabbitmq
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+
+  backend:
+    build:
+      context: ./AIGame_backend
+      dockerfile: Dockerfile
+    container_name: csharp-backend
+    ports:
+      - "5000:5000"
+      - "5001:5001"
+    volumes:
+      - ./certs:/https
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_USER: ${DB_USER}
+      DB_SERVER: ${DB_SERVER}
+      DB_BACKEND: ${DB_BACKEND}
+      FRONTEND_URL: ${FRONTEND_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS}
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /https/aspnetapp.pfx
+      ASPNETCORE_Kestrel__Certificates__Default__Password: ${CERTIFICATE_PASSWORD}
+
+
+  frontend:
+    build:
+      context: ./ai_game/frontend
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_AUTH_URL: ${AUTH_URL}
+        REACT_APP_BACKEND_URL: ${BACKEND_URL}
+    container_name: frontend_fullstack
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_AUTH_URL=${AUTH_URL}
+      - REACT_APP_BACKEND_URL=${BACKEND_URL}
+
+
+
+  node-backend:
+    restart: always
+    build:
+      context: ./ai_game/backend
+      dockerfile: Dockerfile
+    container_name: node-backend
+    depends_on:
+      - rabbitmq
+    ports:
+      - "5002:5002"
+    environment:
+      NODE_ENV: production
+      RABBITMQ_PROTOCOL: ${RABBITMQ_PROTOCOL}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+
+  orchestrator:
+    build:
+      context: ./AI_microservices/orchestrator
+      dockerfile: Dockerfile
+    container_name: orchestrator
+    depends_on:
+      - rabbitmq
+    restart: always
+    ports:
+      - "6000:6000"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=user
+      - RABBITMQ_PASSWORD=password
+      - RABBITMQ_QUEUE=request_queue
+      - TEXT_GENERATOR_URL=${TEXT_GENERATOR_URL}
+      - TTS_SERVICE_URL=${TTS_SERVICE_URL}
+
+
+  ai-text:
+    build:
+      context: ./AI_microservices/ai_text
+      dockerfile: Dockerfile
+    container_name: ai-text
+    ports:
+      - "7000:7000"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+
+  tts-service:
+    build:
+      context: ./AI_microservices/AI_text_to_speach
+      dockerfile: Dockerfile
+    container_name: tts-service
+    ports:
+      - "7001:7001"
+    volumes:
+      - tts-audio:/app/audio_files
+    environment:
+      XI_API_KEY: ${XI_API_KEY}
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nginx-server
+    ports:
+      - "8080:80"
+    volumes:
+      - tts-audio:/usr/share/nginx/html/audio_files
+    depends_on:
+      - tts-service
+
+volumes:
+  tts-audio:
