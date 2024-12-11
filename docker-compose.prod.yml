@@ -22,15 +22,13 @@ services:
       - "5672:5672"
 
   backend:
-    build:
-      context: ./AIGame_backend
-      dockerfile: Dockerfile
+    image: registry.digitalocean.com/ai-game/backend:latest
     container_name: csharp-backend
     ports:
       - "5000:5000"
       - "5001:5001"
     volumes:
-      - ./certs:/https
+      - /root/certs:/https
     environment:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_USER: ${DB_USER}
@@ -43,12 +41,7 @@ services:
       ASPNETCORE_Kestrel__Certificates__Default__Password: ${CERTIFICATE_PASSWORD}
 
   frontend:
-    build:
-      context: ./ai_game/frontend
-      dockerfile: Dockerfile
-      args:
-        REACT_APP_AUTH_URL: ${AUTH_URL}
-        REACT_APP_BACKEND_URL: ${BACKEND_URL}
+    image: registry.digitalocean.com/ai-game/frontend:latest
     container_name: frontend_fullstack
     ports:
       - "3000:80"
@@ -57,13 +50,11 @@ services:
       REACT_APP_BACKEND_URL: ${BACKEND_URL}
 
   node-backend:
-    build:
-      context: ./ai_game/backend
-      dockerfile: Dockerfile
+    image: registry.digitalocean.com/ai-game/node-backend:latest
     container_name: node-backend
-    restart: always
     depends_on:
       - rabbitmq
+    restart: always
     ports:
       - "5002:5002"
     environment:
@@ -75,9 +66,7 @@ services:
       RABBITMQ_USER: ${RABBITMQ_USER}
 
   orchestrator:
-    build:
-      context: ./AI_microservices/orchestrator
-      dockerfile: Dockerfile
+    image: registry.digitalocean.com/ai-game/orchestrator:latest
     container_name: orchestrator
     depends_on:
       - rabbitmq
@@ -94,9 +83,7 @@ services:
       TTS_SERVICE_URL: ${TTS_SERVICE_URL}
 
   ai-text:
-    build:
-      context: ./AI_microservices/ai_text
-      dockerfile: Dockerfile
+    image: registry.digitalocean.com/ai-game/ai-text:latest
     container_name: ai-text
     ports:
       - "7000:7000"
@@ -104,9 +91,7 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
 
   tts-service:
-    build:
-      context: ./AI_microservices/AI_text_to_speach
-      dockerfile: Dockerfile
+    image: registry.digitalocean.com/ai-game/tts-service:latest
     container_name: tts-service
     ports:
       - "7001:7001"
@@ -116,9 +101,7 @@ services:
       XI_API_KEY: ${XI_API_KEY}
 
   nginx:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
+    image: registry.digitalocean.com/ai-game/nginx:latest
     container_name: nginx-server
     ports:
       - "8080:80"

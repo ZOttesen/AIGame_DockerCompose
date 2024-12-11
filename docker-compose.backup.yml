@@ -22,6 +22,7 @@ services:
       - "5672:5672"
 
   backend:
+    image: ${BACKEND_IMAGE}
     build:
       context: ./AIGame_backend
       dockerfile: Dockerfile
@@ -43,6 +44,7 @@ services:
       ASPNETCORE_Kestrel__Certificates__Default__Password: ${CERTIFICATE_PASSWORD}
 
   frontend:
+    image: ${FRONTEND_IMAGE}
     build:
       context: ./ai_game/frontend
       dockerfile: Dockerfile
@@ -57,6 +59,7 @@ services:
       REACT_APP_BACKEND_URL: ${BACKEND_URL}
 
   node-backend:
+    image: ${NODE_BACKEND_IMAGE}
     build:
       context: ./ai_game/backend
       dockerfile: Dockerfile
@@ -75,6 +78,7 @@ services:
       RABBITMQ_USER: ${RABBITMQ_USER}
 
   orchestrator:
+    image: ${ORCHESTRATOR_IMAGE}
     build:
       context: ./AI_microservices/orchestrator
       dockerfile: Dockerfile
@@ -94,6 +98,7 @@ services:
       TTS_SERVICE_URL: ${TTS_SERVICE_URL}
 
   ai-text:
+    image: ${AI_TEXT_IMAGE}
     build:
       context: ./AI_microservices/ai_text
       dockerfile: Dockerfile
@@ -104,6 +109,7 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
 
   tts-service:
+    image: ${TTS_SERVICE_IMAGE}
     build:
       context: ./AI_microservices/AI_text_to_speach
       dockerfile: Dockerfile
@@ -116,6 +122,7 @@ services:
       XI_API_KEY: ${XI_API_KEY}
 
   nginx:
+    image: ${NGINX_IMAGE}
     build:
       context: ./nginx
       dockerfile: Dockerfile

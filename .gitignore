@@ -3,3 +3,4 @@ AI_microservices
 AIGame_backend
 certs
 .env
+.env.prod
