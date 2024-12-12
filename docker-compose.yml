@@ -90,6 +90,7 @@ services:
       RABBITMQ_USER: user
       RABBITMQ_PASSWORD: password
       RABBITMQ_QUEUE: request_queue
+      RABBITMQ_ANSWER_QUEUE: answer_queue
       TEXT_GENERATOR_URL: ${TEXT_GENERATOR_URL}
       TTS_SERVICE_URL: ${TTS_SERVICE_URL}
 
