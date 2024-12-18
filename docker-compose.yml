@@ -114,7 +114,7 @@ services:
     volumes:
       - tts-audio:/app/audio_files
     environment:
-      XI_API_KEY: ${XI_API_KEY}
+      XI_API_KEY: ${FAKE_OPENAI_API_KEY}
 
   nginx:
     build:
